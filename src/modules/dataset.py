@@ -75,7 +75,7 @@ class BBoxDataset(Dataset):
 
     def load_labels(self, meta):
         labels = meta.is_normal.values
-        return labels.astype(np.int) + 1
+        return labels.astype(np.int)
 
     def num_classes(self):
         return 2

@@ -239,8 +239,8 @@ class ResNet(nn.Module):
             if isinstance(layer, nn.BatchNorm2d):
                 layer.eval()
 
-    def forward(self, inputs, test=False):
-        if test:
+    def forward(self, inputs):
+        if not self.training:
             img_batch = inputs
         else:
             img_batch, annotations = inputs
@@ -258,11 +258,6 @@ class ResNet(nn.Module):
             x3 = self.dropouts[-1](x3)
             x4 = self.dropouts[-1](x4)
 
-        if self.make_clf:
-            x = torch.mean(x4.view((x4.size(0), x4.size(1), -1)), dim=-1)
-            x = x.view(x.size(0), -1)
-            x = self.fc(x)
-
         features = self.fpn([x2, x3, x4])
 
         regression_ = [self.regressionModel(feature) for feature in features]
@@ -274,16 +269,14 @@ class ResNet(nn.Module):
         anchors = self.anchors(img_batch)
 
         output = dict()
-        if self.make_clf:
-                output['clf_out'] = x
-        if not test:
+        if self.training:
             output['focal_loss'] = self.focalLoss(
                 classification, regression, anchors, annotations)
-        elif test:
-            output['bb_reg_out'] = regression
-            output['bb_clf_out'] = classification
-            output['anchors'] = anchors
-            return output
+#         elif test:
+#             output['bb_reg_out'] = regression
+#             output['bb_clf_out'] = classification
+#             output['anchors'] = anchors
+#             return output
 
         if not self.training:
             transformed_anchors = self.regressBoxes(anchors, regression)

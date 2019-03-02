@@ -4,8 +4,8 @@ import cv2
 from ..configs import config
 
 LABEL_COLOUR = {
-    2: (1., 1., 1.),
-    1: (1., .6, .6)
+    1: (1., 1., 1.),
+    0: (1., .6, .6)
 }
 
 
