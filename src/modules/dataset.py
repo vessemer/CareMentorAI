@@ -18,18 +18,39 @@ img_transform = Compose([
 ])
 
 
+def get_folds_patients_indeferent(labels, n_splits, random_state=42):
+    kfolds = sklearn.model_selection.StratifiedKFold(
+        n_splits=n_splits,
+        shuffle=True,
+        random_state=random_state,
+    )
+    grouped = labels.groupby('instance_id')
+    grouped = grouped.aggregate(min)
+    ksplit = kfolds.split(grouped, grouped.is_normal)
+    ksplit = [[grouped.index[split] for split in fold] for fold in ksplit]
+    return ksplit
+
 def get_folds(labels, n_splits, random_state=42):
     kfolds = sklearn.model_selection.StratifiedKFold(
         n_splits=n_splits,
         shuffle=True,
         random_state=random_state,
     )
-    grouped = labels.groupby('filename')
-    grouped = grouped.aggregate(min)
-    ksplit = kfolds.split(grouped, grouped.is_normal)
-    ksplit = [[grouped.index[split] for split in fold] for fold in ksplit]
-    return ksplit
-
+    grouped = labels.groupby('instance_id')
+    aggregated = grouped.aggregate(min)
+    ksplit = kfolds.split(aggregated, aggregated.is_normal)
+    ksplit = [[aggregated.index[split] for split in fold] for fold in ksplit]
+    instance_split = list()
+    for fold in ksplit:
+        fold_ = list()
+        for split in fold:
+            split_ = list()
+            for idx in split:
+                filenames = grouped.get_group(idx).filename.unique()
+                split_.extend(filenames.tolist())
+            fold_.append(list(split_))
+        instance_split.append(fold_)
+    return instance_split
 
 def get_fold_split(folds, fold):
     return folds[fold][0], folds[fold][1]
