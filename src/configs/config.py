@@ -7,6 +7,7 @@ DATA_ROOT = '../data'
 PATHS = {
     'IMAGES': 'images',
     'CSV': 'descr',
+    'SUB': 'subs'
 }
 
 for k, v in PATHS.items():
