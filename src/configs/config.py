@@ -23,11 +23,11 @@ PARAMS = {
     'NB_FOLDS': 5,
     'SIDE': 384,
     'INVERSE': 3,
-    'BATCH_SIZE': 10,
+    'BATCH_SIZE': 16,
     'THRESHOLD': .5,
-    'NB_EPOCHS': 31,
+    'NB_EPOCHS': 255,
     'LR': 1e-5,
-    'EXP_GAMMA': .95,
+    'EXP_GAMMA': .99,
     'CUDA_DEVICES': [0, 1],
 }
 
