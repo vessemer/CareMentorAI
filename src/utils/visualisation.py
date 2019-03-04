@@ -1,7 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
+import os
+
 from ..configs import config
+from ..modules import dataset as ds
+from ..modules import metrics as ms
 
 LABEL_COLOUR = {
     1: (1., 1., 1.),
@@ -60,3 +64,20 @@ def plot_losses(history):
     axes[1].grid()
 
     plt.show()
+
+
+def visualise_pred(data):
+    annotation, bboxes, scores = ms._extract_meta(data)
+    filename = data['pid']
+    image = cv2.imread(os.path.join(config.PATHS.IMAGES, filename))
+    image = ds.img_transform(image)
+
+    fdata = {
+        'image': image,
+        'bboxes': bboxes
+    }
+    tdata = {
+        'image': image,
+        'bboxes': annotation
+    }
+    visualize_bboxes(tdata, fdata, {0:'', 1:''})
