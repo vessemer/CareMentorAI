@@ -74,7 +74,7 @@ class BBoxDataset(Dataset):
         if self.transform is not None:
             augmented = self.transform(data)
             image, bboxes = augmented["image"], np.array(augmented["bboxes"])
-            labels = augmented['category_id']
+            label = augmented["category_id"]
 
         bboxes = np.concatenate([bboxes, np.expand_dims(label, -1)], axis=1)
         return self.postprocess(image, bboxes, key)
