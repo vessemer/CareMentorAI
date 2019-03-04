@@ -9,6 +9,7 @@ PATHS = {
     'CSV': 'descr',
     'SUB': 'subs',
     'MODELS': 'models',
+    'LOGDIR': 'logdir',
 }
 
 for k, v in PATHS.items():

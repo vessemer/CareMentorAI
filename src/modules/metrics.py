@@ -101,7 +101,7 @@ def estimate_pred(history):
 
         annotation = annotation[annotation[:, -1] == 0]
         bboxes, scores = bboxes[bboxes[:, -1] == 0], scores[bboxes[:, -1] == 0]
-        miou = map_iou(annotation[:, :4], bboxes[:, :4], scores, thresholds=[.4])
+        miou = map_iou(annotation[:, :4], bboxes[:, :4], scores, thresholds=[.3])
         mious_pathology.append(miou)
 
     mious_all = np.mean([el for el in mious_all if el is not None])
