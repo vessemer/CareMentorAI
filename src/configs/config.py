@@ -23,6 +23,7 @@ PARAMS = {
     'SIDE': 384,
     'INVERSE': 3,
     'BATCH_SIZE': 10,
+    'THRESHOLD': .5,
     'NB_EPOCHS': 31,
     'LR': 1e-5,
     'EXP_GAMMA': .8,

@@ -239,12 +239,12 @@ class ResNet(nn.Module):
             if isinstance(layer, nn.BatchNorm2d):
                 layer.eval()
 
-    def forward(self, inputs):
-        if not self.training:
+    def forward(self, inputs, test=False):
+        if test:
             img_batch = inputs
         else:
             img_batch, annotations = inputs
-            
+
         x = self.conv1(img_batch)
         x = self.bn1(x)
         x = self.relu(x)
@@ -269,7 +269,7 @@ class ResNet(nn.Module):
         anchors = self.anchors(img_batch)
 
         output = dict()
-        if self.training:
+        if not test:
             output['focal_loss'] = self.focalLoss(
                 classification, regression, anchors, annotations)
 #         elif test:

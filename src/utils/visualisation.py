@@ -5,7 +5,8 @@ from ..configs import config
 
 LABEL_COLOUR = {
     1: (1., 1., 1.),
-    0: (1., .6, .6)
+    0: (1., .6, .6),
+    -1: (1., 1., 1.)
 }
 
 
@@ -20,7 +21,10 @@ def visualize_bboxes(pred, annotations, category_id_to_name):
     img = annotations['image'][..., 0]
     if not isinstance(img, np.ndarray):
         img = annotations['image'].data.numpy().copy()[0]
-    img = np.dstack([(img * config.STD) + config.MEAN] * 3)
+    if img.dtype != np.uint8:
+        img = (img * config.STD) + config.MEAN
+    if len(img.shape) == 2:
+        img = np.dstack([img] * 3)
     img1, img2 = img.copy(), img.copy()
     for idx, bbox in enumerate(pred['bboxes']):
         img1 = visualize_bbox(img1, bbox, category_id_to_name)
