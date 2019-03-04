@@ -7,7 +7,8 @@ DATA_ROOT = '../data'
 PATHS = {
     'IMAGES': 'images',
     'CSV': 'descr',
-    'SUB': 'subs'
+    'SUB': 'subs',
+    'MODELS': 'models',
 }
 
 for k, v in PATHS.items():
@@ -19,14 +20,14 @@ PATHS = easydict.EasyDict(PATHS)
 PARAMS = {
     'PATHS': PATHS,
     'SEED': 42,
-    'NB_FOLDS': 4,
+    'NB_FOLDS': 5,
     'SIDE': 384,
     'INVERSE': 3,
     'BATCH_SIZE': 10,
     'THRESHOLD': .5,
     'NB_EPOCHS': 31,
     'LR': 1e-5,
-    'EXP_GAMMA': .8,
+    'EXP_GAMMA': .95,
     'CUDA_DEVICES': [0, 1],
 }
 
