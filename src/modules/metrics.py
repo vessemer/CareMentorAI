@@ -1,6 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 import torch
+from ..configs import config
 
 
 # helper function to calculate IoU
@@ -73,3 +74,43 @@ def map_iou(boxes_true, boxes_pred, scores, thresholds=[0.4, 0.45, 0.5, 0.55, 0.
         map_total += m
     
     return map_total / len(thresholds)
+
+
+def _extract_meta(el, threshold=config.PARAMS.THRESHOLD):
+    scores, labels, bboxes = el['nms_out']
+    annotation = el['annotation']
+
+    bboxes = np.concatenate([
+        bboxes, 
+        np.expand_dims(labels, -1),
+    ], -1)
+    bboxes = bboxes[scores > threshold].astype(np.uint)
+    scores = scores[scores > threshold]
+
+    return annotation, bboxes, scores
+
+
+def estimate_pred(history):
+    mious_pathology = list()
+    mious_all = list()
+
+    for i, el in enumerate(history):
+        annotation, bboxes, scores = _extract_meta(el)
+        miou_all = map_iou(annotation[:, :4], bboxes[:, :4], scores, thresholds=[.5])
+        mious_all.append(miou_all)
+
+        annotation = annotation[annotation[:, -1] == 0]
+        bboxes, scores = bboxes[bboxes[:, -1] == 0], scores[bboxes[:, -1] == 0]
+        miou = map_iou(annotation[:, :4], bboxes[:, :4], scores, thresholds=[.4])
+        mious_pathology.append(miou)
+
+    mious_all = np.mean([el for el in mious_all if el is not None])
+    mious_pathology = np.mean([el for el in mious_pathology if el is not None])
+
+    return { 
+        'map_all': mious_all, 
+        'map_pathology': mious_pathology,
+        'loss': np.mean([float(v['loss']) for v in history]),
+        'reg_loss': np.mean([float(v['bbx_reg_loss']) for v in history]),
+        'clf_loss': np.mean([float(v['bbx_clf_loss']) for v in history]),        
+    }
