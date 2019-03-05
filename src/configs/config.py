@@ -24,7 +24,7 @@ PARAMS = {
     'NB_FOLDS': 5,
     'SIDE': 384,
     'INVERSE': 3,
-    'BATCH_SIZE': 16,
+    'BATCH_SIZE': 32,
     'THRESHOLD': .5,
     'NB_EPOCHS': 255,
     'LR': 1e-5,

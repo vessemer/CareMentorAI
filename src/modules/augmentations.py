@@ -27,24 +27,24 @@ class Augmentation:
 
         return Compose([
             OneOf([
-                CLAHE(clip_limit=2, p=.4),
-                IAASharpen(p=.3),
-                IAAEmboss(p=.3),
-            ], p=0.5),
+                CLAHE(clip_limit=2, p=.8),
+                IAASharpen(p=.8),
+                IAAEmboss(p=.8),
+            ], p=0.6),
             OneOf([
-                IAAAdditiveGaussianNoise(p=.3),
+                IAAAdditiveGaussianNoise(p=.6),
                 GaussNoise(p=.7),
             ], p=.5),
             OneOf([
-                MotionBlur(p=.2),
+                MotionBlur(p=.5),
                 MedianBlur(blur_limit=k, p=.3),
                 Blur(blur_limit=k, p=.5),
-            ], p=.4),
+            ], p=.5),
             OneOf([
                 RandomContrast(),
                 RandomBrightness(),
-            ], p=.4),
-        ], p=0.9)
+            ], p=.8),
+        ], p=0.95)
 
     def get_geoometric(self):
         geometric = [
@@ -52,7 +52,7 @@ class Augmentation:
                 shift_limit=0.0625, 
                 scale_limit=(-.1, .1), 
                 rotate_limit=10, 
-                p=.5
+                p=.8
             ),
         ]
         return Compose(geometric)
