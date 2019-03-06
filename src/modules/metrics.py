@@ -96,7 +96,7 @@ def estimate_pred(history):
 
     for i, el in enumerate(history):
         annotation, bboxes, scores = _extract_meta(el)
-        miou_all = map_iou(annotation[:, :4], bboxes[:, :4], scores, thresholds=[.5])
+        miou_all = map_iou(annotation[:, :4], bboxes[:, :4], scores, thresholds=[.4])
         mious_all.append(miou_all)
 
         annotation = annotation[annotation[:, -1] == 0]

@@ -240,10 +240,7 @@ class ResNet(nn.Module):
                 layer.eval()
 
     def forward(self, inputs, test=False):
-        if test:
-            img_batch = inputs
-        else:
-            img_batch, annotations = inputs
+        img_batch, annotations = inputs
 
         x = self.conv1(img_batch)
         x = self.bn1(x)
@@ -286,10 +283,11 @@ class ResNet(nn.Module):
 
             scores_over_thresh = (scores > 0.05)[0, :, 0]
 
+            nms_keys = ['scores', 'class', 'anchors']
             if scores_over_thresh.sum() == 0:
                 # no boxes to NMS, just return
                 results = [torch.zeros(1), torch.zeros(1), torch.zeros(1, 1)]
-                output['nms_out'] = [r.cuda() for r in results]
+                output['nms_out'] = { nms_keys[i]: r.cuda() for i, r in enumerate(results) }
                 return output
 
             classification = classification[:, scores_over_thresh, :]
@@ -300,6 +298,7 @@ class ResNet(nn.Module):
 
             nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
             output['nms_out'] = [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
+            output['nms_out'] = { nms_keys[i]: r.cuda() for i, r in enumerate(output['nms_out']) }
         return output
 
 

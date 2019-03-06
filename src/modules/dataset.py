@@ -30,6 +30,7 @@ def get_folds_patients_indeferent(labels, n_splits, random_state=42):
     ksplit = [[grouped.index[split] for split in fold] for fold in ksplit]
     return ksplit
 
+
 def get_folds(labels, n_splits, random_state=42):
     kfolds = sklearn.model_selection.StratifiedKFold(
         n_splits=n_splits,
@@ -57,34 +58,42 @@ def get_fold_split(folds, fold):
 
 
 class BBoxDataset(Dataset):
-    def __init__(self, labels, fold, augmentations=None):
+    def __init__(self, fold, labels=None, augmentations=None):
         self.transform = augmentations
-        self.labels = labels.copy()
         self.fold = fold.copy()
-        self.format_bboxes()
+        self.labels = None
+        if labels is not None:
+            self.labels = labels.copy()
+            self.format_bboxes()
 
     def __getitem__(self, idx):
         key = self.fold[idx]
-        meta = self.labels.query('filename==@key')
         image = self.load_image(key)
-        bboxes = self.load_annotations(meta)
-        label = self.load_labels(meta)
 
-        data = {"image": image, "bboxes": bboxes, 'category_id': label}
-        if self.transform is not None:
-            augmented = self.transform(data)
-            image, bboxes = augmented["image"], np.array(augmented["bboxes"])
-            label = augmented["category_id"]
+        bboxes = None
+        if self.labels is not None:
+            meta = self.labels.query('filename==@key')
+            bboxes = self.load_annotations(meta)
+            label = self.load_labels(meta)
 
-        bboxes = np.concatenate([bboxes, np.expand_dims(label, -1)], axis=1)
+            data = {"image": image, "bboxes": bboxes, 'category_id': label}
+            if self.transform is not None:
+                augmented = self.transform(data)
+                image, bboxes = augmented["image"], np.array(augmented["bboxes"])
+                label = augmented["category_id"]
+
+            bboxes = np.concatenate([bboxes, np.expand_dims(label, -1)], axis=1)
+
         return self.postprocess(image, bboxes, key)
 
     def postprocess(self, image, bboxes, key):
-        return { 
+        data = { 
             'image': img_transform(np.expand_dims(image.mean(-1), -1).astype(np.uint8)),
-            'bboxes': bboxes.astype(np.int),
             'pid': key,
         }
+        if bboxes is not None:
+            data.update({ 'bboxes': bboxes.astype(np.int) })
+        return data
 
     def load_image(self, key):
         path = os.path.join(config.PATHS.IMAGES, key)

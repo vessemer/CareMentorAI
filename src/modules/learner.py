@@ -58,25 +58,10 @@ class RetinaLearner:
                 group.setdefault('initial_lr', group['lr'])
 
     def make_step(self, data, training=False):
-        image = torch.autograd.Variable(torch.tensor(data['image'])).cuda()
-        annot = torch.autograd.Variable(torch.tensor(data['bboxes'])).cuda()
-
-        if len(image.shape) == 3:
-            image = image.unsqueeze(dim=0)
-            annot = annot.unsqueeze(dim=0)
+        formated = self._format_input(data)
+        prediction = self.model(*formated)
+        results = self._format_output(prediction, data)
         
-        prediction = self.model([image.float(), annot.float()])
-
-        classification_loss, regression_loss = prediction['focal_loss']
-        classification_loss = classification_loss.mean()
-        regression_loss = regression_loss.mean()
-
-        results = { 
-            'loss': classification_loss + regression_loss,
-            'bbx_reg_loss': regression_loss,
-            'bbx_clf_loss': classification_loss,
-        }
-
         if training and bool(results['loss'] == 0):
             return results
 
@@ -85,18 +70,10 @@ class RetinaLearner:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gclip)
             self.opt.step()
 
-        image = image.data.cpu()
+        formated = formated[0][0].data.cpu()
         for key in results.keys():
-                results[key] = results[key].data.cpu()
-        if not training:
-            results.update({
-                'nms_out': [
-                    el.cpu().numpy() 
-                    for el in prediction['nms_out']
-                ],
-                'annotation': data['bboxes'],
-                'pid': data['pid'],
-            })
+            results[key] = results[key].data.cpu()
+        results.update({ 'pid': data['pid'] })
         return results
 
     def validate(self, datagen):
@@ -133,3 +110,35 @@ class RetinaLearner:
             state_dict = self.model.module.state_dict()
         torch.save(state_dict, path)
         print('Saved in {}:'.format(path))
+
+    def _format_input(self, data):
+        image = torch.autograd.Variable(torch.tensor(data['image']))
+        if 'bboxes' in data:
+            annot = torch.autograd.Variable(torch.tensor(data['bboxes']))
+
+        if len(image.shape) == 3:
+            image = image.unsqueeze(dim=0).cuda().float()
+            if 'bboxes' in data:
+                annot = annot.unsqueeze(dim=0).cuda().float()
+
+        is_test = 'bboxes' not in data
+        return ([image, annot if not is_test else None], is_test)
+
+    def _format_output(self, prediction, data):
+        results = dict()
+        if 'focal_loss' in prediction:
+            classification_loss, regression_loss = prediction['focal_loss']
+            classification_loss = classification_loss.mean()
+            regression_loss = regression_loss.mean()
+
+            results = { 
+                'loss': classification_loss + regression_loss,
+                'bbx_reg_loss': regression_loss,
+                'bbx_clf_loss': classification_loss,
+            }
+        if 'nms_out' in prediction:
+            results.update(prediction['nms_out'])
+        if 'bboxes' in data:
+            results.update({ 'annotation': data['bboxes'] })
+        return results
+
