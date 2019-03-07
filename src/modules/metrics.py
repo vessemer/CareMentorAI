@@ -77,8 +77,11 @@ def map_iou(boxes_true, boxes_pred, scores, thresholds=[0.4, 0.45, 0.5, 0.55, 0.
 
 
 def _extract_meta(el, threshold=config.PARAMS.THRESHOLD):
-    scores, labels, bboxes = el['nms_out']
-    annotation = el['annotation']
+    scores = el['scores'].data.numpy()
+    labels = el['class'].data.numpy()
+    bboxes = el['anchors'].data.numpy()
+    
+    annotation = el['annotation'] if 'annotation' in el else None
 
     bboxes = np.concatenate([
         bboxes, 

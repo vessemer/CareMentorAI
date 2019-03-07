@@ -10,6 +10,8 @@ PATHS = {
     'SUB': 'subs',
     'MODELS': 'models',
     'LOGDIR': 'logdir',
+    # for inference
+    'MODEL_NAME': 'retinanet{}/fold_{}_checkpoint.epoch_{}', 
 }
 
 for k, v in PATHS.items():
